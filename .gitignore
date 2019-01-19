@@ -1,0 +1,8 @@
+transactionsToGoThrough.json
+handledTransactions.json
+/config.js
+.DS_Store
+/node_modules/
+
+/.vscode/
+.code-workspace
