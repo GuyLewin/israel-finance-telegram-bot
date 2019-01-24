@@ -91,7 +91,10 @@ function handleSentMessage(result, handledTransactionsDbPath, transaction) {
 function handleAccount(account, service) {
   account.txns.sort(transactionCompare);
   account.txns.forEach((transaction) => {
-    const handledTransactionsDbPath = `/${service.companyId}/${transaction.identifier}`;
+    // Read https://github.com/GuyLewin/israel-finance-telegram-bot/issues/1 - transaction.identifier isn't unique
+    // This is as unique as we can get
+    const identifier = `${transaction.date}-${transaction.chargedAmount}-${transaction.identifier}`;
+    const handledTransactionsDbPath = `/${service.companyId}/${identifier}`;
     if (handledTransactionsDb.exists(handledTransactionsDbPath)) {
       const telegramMessageId = handledTransactionsDb.getData(`${handledTransactionsDbPath}/telegramMessageId`);
       if (!(telegramMessageId in replyListeners) && !(transactionsToGoThroughDb.exists(`/${telegramMessageId}`))) {
