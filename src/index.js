@@ -107,17 +107,22 @@ function handleAccount(account, service) {
 }
 
 async function main() {
-  await Promise.all(CONFIG.SERVICES.map(async (service) => {
-    const options = Object.assign({ companyId: service.companyId }, CONFIG.ADDITIONAL_OPTIONS);
-    const scraper = createScraper(options);
-    const scrapeResult = await scraper.scrape(service.credentials);
+  try {
+    await Promise.all(CONFIG.SERVICES.map(async (service) => {
+      const options = Object.assign({ companyId: service.companyId }, CONFIG.ADDITIONAL_OPTIONS);
+      const scraper = createScraper(options);
+      const scrapeResult = await scraper.scrape(service.credentials);
 
-    if (scrapeResult.success) {
-      scrapeResult.accounts.forEach(account => handleAccount(account, service));
-    } else {
-      console.error(`scraping failed for the following reason: ${scrapeResult.errorType}`);
-    }
-  }));
+      if (scrapeResult.success) {
+        scrapeResult.accounts.forEach(account => handleAccount(account, service));
+      } else {
+        console.error(`scraping failed for the following reason: ${scrapeResult.errorType}`);
+      }
+    }));
+  } catch (e) {
+    console.log('Got an error. Will try running again next interval. Error details:');
+    console.error(e, e.stack);
+  }
 }
 
 setInterval(main, CONFIG.SCRAPE_SECONDS_INTERVAL * 1000);
