@@ -9,7 +9,7 @@ export default class {
     this.transactionsToGoThroughDb = transactionsToGoThroughDb;
   }
 
-  handleReply(message, transaction) {
+  handleReply(transaction, message) {
     if (message.text !== 'לא') {
       this.bot.sendMessage(CONFIG.TELEGRAM_CHAT_ID, 'חובה לציין פקודה. כרגע רק "לא" נתמך', {
         reply_to_message_id: message.message_id,
@@ -34,18 +34,18 @@ export default class {
     const replyListenerId = this.bot.onReplyToMessage(
       CONFIG.TELEGRAM_CHAT_ID,
       messageId,
-      message => this.handleReply(message, transaction),
+      this.handleReply.bind(this, transaction),
     );
     replyListeners[messageId] = replyListenerId;
   }
 
-  handleSentMessage(result, messageSentCallback, transaction) {
+  handleSentMessage(messageSentCallback, transaction, result) {
     this.registerReplyListener(result.message_id, transaction);
     messageSentCallback(result.message_id);
   }
 
   sendMessage(message, messageSentCallback, transaction) {
     this.bot.sendMessage(CONFIG.TELEGRAM_CHAT_ID, message)
-      .then(result => this.handleSentMessage(result, messageSentCallback, transaction));
+      .then(this.handleSentMessage.bind(this, messageSentCallback, transaction));
   }
 }

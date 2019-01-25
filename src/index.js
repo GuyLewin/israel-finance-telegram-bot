@@ -42,7 +42,7 @@ class IsraelFinanceTelegramBot {
     return `${serviceNiceName}: ${transactionName} - ${transaction.description} על סך ${amount}${currency} בתאריך ${dateStr} ${status}${type}בחשבון ${cardNumber}`;
   }
 
-  messageSent(telegramMessageId, handledTransactionsDbPath) {
+  messageSent(handledTransactionsDbPath, telegramMessageId) {
     this.handledTransactionsDb.push(
       handledTransactionsDbPath,
       { sent: true, telegramMessageId },
@@ -50,7 +50,7 @@ class IsraelFinanceTelegramBot {
     );
   }
 
-  handleAccount(account, service) {
+  handleAccount(service, account) {
     account.txns.sort(Utils.transactionCompare);
     account.txns.forEach((transaction) => {
       // Read https://github.com/GuyLewin/israel-finance-telegram-bot/issues/1 - transaction.identifier isn't unique
@@ -72,7 +72,7 @@ class IsraelFinanceTelegramBot {
       );
       this.telegram.sendMessage(
         message,
-        telegramMessageId => this.messageSent(telegramMessageId, handledTransactionsDbPath),
+        this.messageSent.bind(this, handledTransactionsDbPath),
         transaction,
       );
     });
@@ -86,7 +86,7 @@ class IsraelFinanceTelegramBot {
         const scrapeResult = await scraper.scrape(service.credentials);
 
         if (scrapeResult.success) {
-          scrapeResult.accounts.forEach(account => this.handleAccount(account, service));
+          scrapeResult.accounts.forEach(this.handleAccount.bind(this, service));
         } else {
           console.error(`scraping failed for the following reason: ${scrapeResult.errorType}`);
         }
