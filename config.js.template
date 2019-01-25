@@ -1,41 +1,38 @@
 import moment from 'moment';
 
-const CONFIG = {};
-
-CONFIG.SCRAPE_SECONDS_INTERVAL = 1 * 60 * 60; // 1 hour
-CONFIG.SERVICES = [
-  {
-    companyId: 'hapoalim',
-    niceName: 'בנק הפועלים',
-    credentials: {
-      userCode: <USRECODE HERE>,
-      password: <PASSWORD HERE>,
+export default {
+  SCRAPE_SECONDS_INTERVAL: 1 * 60 * 60, // 1 hour
+  SERVICES: [
+    {
+      companyId: 'hapoalim',
+      niceName: 'בנק הפועלים',
+      credentials: {
+        userCode: <USRECODE HERE>,
+        password: <PASSWORD HERE>,
+      },
     },
-  },
-  {
-    companyId: 'amex',
-    niceName: 'אמריקן אקספרס',
-    credentials: {
-      id: <ID HERE>,
-      card6Digits: <CARD 6 DIGITS HERE>,
-      password: <PASSWORD HERE>,
+    {
+      companyId: 'amex',
+      niceName: 'אמריקן אקספרס',
+      credentials: {
+        id: <ID HERE>,
+        card6Digits: <CARD 6 DIGITS HERE>,
+        password: <PASSWORD HERE>,
+      },
     },
-  },
-  {
-    companyId: 'isracard',
-    niceName: 'ישראכרט',
-    credentials: {
-      id: <ID HERE>,
-      card6Digits: <CARD 6 DIGITS HERE>,
-      password: <PASSWORD HERE>,
+    {
+      companyId: 'isracard',
+      niceName: 'ישראכרט',
+      credentials: {
+        id: <ID HERE>,
+        card6Digits: <CARD 6 DIGITS HERE>,
+        password: <PASSWORD HERE>,
+      },
     },
+  ],
+  ADDITIONAL_OPTIONS: {
+    startDate: moment().startOf('month').subtract(1, 'month'), // Always scrape from the beginning of last month
   },
-];
-CONFIG.ADDITIONAL_OPTIONS = {
-  startDate: moment().startOf('month').subtract(1, 'month'), // Always scrape from the beginning of last month
+  TELEGRAM_TOKEN: <TELEGRAM BOT TOKEN HERE. READ README FOR INSTRUCTIONS>,
+  TELEGRAM_CHAT_ID: <ID OF TELEGRAM BOT CHAT WITH YOUR PERSONAL ACCOUNT. READ README FOR INSTRUCTIONS>,
 };
-
-CONFIG.TELEGRAM_TOKEN = <TELEGRAM BOT TOKEN HERE. READ README FOR INSTRUCTIONS>;
-CONFIG.TELEGRAM_CHAT_ID = <ID OF TELEGRAM BOT CHAT WITH YOUR PERSONAL ACCOUNT. READ README FOR INSTRUCTIONS>;
-
-module.exports = CONFIG;
