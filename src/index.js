@@ -1,8 +1,12 @@
 import { createScraper } from 'israeli-bank-scrapers';
 import JsonDB from 'node-json-db';
+import yargs from 'yargs';
+import keytar from 'keytar';
 import CONFIG from '../config';
 import Telegram from './telegram';
 import Utils from './utils';
+import { KEYTAR_SERVICE_NAME } from './consts';
+import setup from './setup';
 
 class IsraelFinanceTelegramBot {
   constructor() {
@@ -98,13 +102,22 @@ class IsraelFinanceTelegramBot {
     console.log(`Periodic run ended on ${curDate}. ${this.existingTransactionsFound} existing transactions found, ${this.newTransactionsFound} new transactions found`);
   }
 
+  async getCredentialsForService(service) {
+    return keytar.getPassword(KEYTAR_SERVICE_NAME, service.credentialsIdentifier);
+  }
+
   async run() {
     try {
       this.startRunStatistics();
       await Promise.all(CONFIG.SERVICES.map(async (service) => {
+        const credentials = await this.getCredentialsForService(service);
+        if (credentials === null) {
+          console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
+          process.exit();
+        }
         const options = Object.assign({ companyId: service.companyId }, CONFIG.ADDITIONAL_OPTIONS);
         const scraper = createScraper(options);
-        const scrapeResult = await scraper.scrape(service.credentials);
+        const scrapeResult = await scraper.scrape(JSON.parse(credentials));
 
         if (scrapeResult.success) {
           scrapeResult.accounts.forEach(this.handleAccount.bind(this, service));
@@ -121,5 +134,9 @@ class IsraelFinanceTelegramBot {
   }
 }
 
-const iftb = new IsraelFinanceTelegramBot();
-iftb.run();
+if (yargs.argv.setup) {
+  setup();
+} else {
+  const iftb = new IsraelFinanceTelegramBot();
+  iftb.run();
+}

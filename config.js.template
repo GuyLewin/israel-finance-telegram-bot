@@ -6,28 +6,17 @@ export default {
     {
       companyId: 'hapoalim',
       niceName: 'בנק הפועלים',
-      credentials: {
-        userCode: <USRECODE HERE>,
-        password: <PASSWORD HERE>,
-      },
+      credentialsIdentifier: 'hapoalim1',
     },
     {
       companyId: 'amex',
       niceName: 'אמריקן אקספרס',
-      credentials: {
-        id: <ID HERE>,
-        card6Digits: <CARD 6 DIGITS HERE>,
-        password: <PASSWORD HERE>,
-      },
+      credentialsIdentifier: 'amex1',
     },
     {
       companyId: 'isracard',
       niceName: 'ישראכרט',
-      credentials: {
-        id: <ID HERE>,
-        card6Digits: <CARD 6 DIGITS HERE>,
-        password: <PASSWORD HERE>,
-      },
+      credentialsIdentifier: 'isracard1',
     },
   ],
   ADDITIONAL_OPTIONS: {

@@ -27,12 +27,19 @@ npm install
 ```
 
 ### Configuration
-This tool relies on having the account data for scraping the finnancial accounts. As you can read from the code, it's not sent anywhere and is only saved in your local configuration file. You shouldn't upload this file anywhere or let it leave your computer.
-In order to create such configuration file, create a copy of `config.js.template` from the root directory named `config.js`.
+This tool relies on having the account data for scraping the finnancial accounts. As you can read from the code, it's not sent anywhere. The credentials themselves are saved on your operating system's secure keychain.
+In order to create a configuration file, create a copy of `config.js.template` from the root directory named `config.js`.
 
 #### Accounts Configuration
-Modify the accounts according to the template.
-For more information about specific configurations for the different services, visit the [Israeli Banks Scrapers](https://github.com/eshaham/israeli-bank-scrapers) project's README.
+First - modify the accounts according to the template. Notice that the credentials aren't written there, since they're configured separately in the secure operation system keychain.
+To learn what possible `companyId` you can use (what scrapers you can configure) - you can look at the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.js).
+The field called `credentialsIdentifier` in each service is being used as the account identifier in the OS keychain, as you may have more than one bank / credit card account - this is the method used to distinguish between them.
+
+After configuring `config.js` with the right accounts, run the setup utility to save the credentials into the keychain:
+```bash
+npm run setup
+```
+Run the above snippet once for every account you want to configure.
 
 #### Telegram API Key
 This script uses Telegram as the framework for notifying users for new transactions and interacting with the user in general.
@@ -51,6 +58,15 @@ pm2 start israel-finance-telegram-bot.js
 If not, use the pm2 binary installed within the package dependencies (less recommended):
 ```bash
 ./node_modules/.bin/pm2 start israel-finance-telegram-bot.js
+```
+
+The status (and log) of the bot can be seen using
+```bash
+pm2 log israel-finance-telegram-bot
+```
+or if pm2 isn't installed globally:
+```bash
+./node_modules/.bin/pm2 log israel-finance-telegram-bot
 ```
 The bot should initially send notifications for all transactions since the beginning of last month (or the start date configured in `config.js`).
 Afterwards, it will only send notifications for new transactions.
