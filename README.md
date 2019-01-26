@@ -1,5 +1,6 @@
 # israel-finance-telegram-bot
 Telegram bot that scrapes and sends notifications about bank and credit card charges. This tool uses [Israeli Banks Scrapers](https://github.com/eshaham/israeli-bank-scrapers) project as the source of fetching account data.
+![israel-finance-telegram-bot example](/screenshots/1.png?raw=true "israel-finance-telegram-bot example")
 
 ## Getting started
 
