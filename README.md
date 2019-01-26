@@ -4,25 +4,27 @@ Telegram bot that scrapes and sends notifications about bank and credit card cha
 ## Getting started
 
 ### Prerequisites 
-
 In order to start using this tool, you will need to have Node.js (>= 8) installed on your machine.  
 Go [here!](https://nodejs.org/en/download/) to download and install the latest Node.js for your operating system.
+It is also recommended you install [pm2](https://www.npmjs.com/package/pm2) globally, the process manager used by this bot.
+To do so:
+```bash
+npm install pm2 -g
+```
 
 ### Installation
-Once Node.js is installed, run the following command to fetch the code:
+Once Node.js and pm2 are installed, run the following command to fetch the code:
 
 ```bash
 git clone https://github.com/GuyLewin/israel-finance-telegram-bot
 cd israel-finance-telegram-bot
 ```
 
-If you're using `nvm` make sure to run `nvm use` inside project folder for best compatability.
-If you're using `nodenv`, it should automatically pick up the correct node version.
-
 Next you will need to install dependencies by running
 ```bash
 npm install
 ```
+
 ### Configuration
 This tool relies on having the account data for scraping the finnancial accounts. As you can read from the code, it's not sent anywhere and is only saved in your local configuration file. You shouldn't upload this file anywhere or let it leave your computer.
 In order to create such configuration file, create a copy of `config.js.template` from the root directory named `config.js`.
@@ -41,12 +43,18 @@ The bot only interacts with one Telegram user - your account. Therefore you must
 Once you got it, replace `CONFIG.TELEGRAM_CHAT_ID` in `config.js` to that value.
 
 ## Running the Code
-Now that everything is ready, simply run the following command to start the bot.
+If pm2 is installed gloablly, you can use it's global command line tool:
 ```bash
-./node_modules/.bin/babel-node src/index.js
+pm2 start israel-finance-telegram-bot.js
+```
+If not, use the pm2 binary installed within the package dependencies (less recommended):
+```bash
+./node_modules/.bin/pm2 start israel-finance-telegram-bot.js
 ```
 The bot should initially send notifications for all transactions since the beginning of last month (or the start date configured in `config.js`).
 Afterwards, it will only send notifications for new transactions.
+
+The script is running as a daemon with pm2. [Read their quick-start](http://pm2.keymetrics.io/docs/usage/quick-start/) to learn how to use control it.
 
 ## Bot Interactiveness
 Currently the bot supports only supports one interactive command - "לא".

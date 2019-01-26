@@ -9,7 +9,7 @@ class IsraelFinanceTelegramBot {
     this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
     this.transactionsToGoThroughDb = new JsonDB('transactionsToGoThrough', true, true);
     this.telegram = new Telegram(this.transactionsToGoThroughDb);
-    setInterval(this.run, CONFIG.SCRAPE_SECONDS_INTERVAL * 1000);
+    setInterval(this.run.bind(this), CONFIG.SCRAPE_SECONDS_INTERVAL * 1000);
   }
 
   static getMessageFromTransaction(transaction, cardNumber, serviceNiceName) {
@@ -62,8 +62,15 @@ class IsraelFinanceTelegramBot {
         if (!(this.transactionsToGoThroughDb.exists(`/${telegramMessageId}`))) {
           this.telegram.registerReplyListener(telegramMessageId, transaction);
         }
-        console.log(`${handledTransactionsDbPath} already exists`);
+        this.existingTransactionsFound += 1;
+        if (CONFIG.VERBOSE) {
+          console.log(`Found existing transaction: ${handledTransactionsDbPath}`);
+        }
         return;
+      }
+      this.newTransactionsFound += 1;
+      if (CONFIG.VERBOSE) {
+        console.log(`Found new transaction: ${handledTransactionsDbPath}`);
       }
       const message = IsraelFinanceTelegramBot.getMessageFromTransaction(
         transaction,
@@ -78,8 +85,22 @@ class IsraelFinanceTelegramBot {
     });
   }
 
+  startRunStatistics() {
+    const curDate = (new Date()).toLocaleString();
+    console.log(`Starting periodic run on ${curDate}`);
+
+    this.existingTransactionsFound = 0;
+    this.newTransactionsFound = 0;
+  }
+
+  endRunStatistics() {
+    const curDate = (new Date()).toLocaleString();
+    console.log(`Periodic run ended on ${curDate}. ${this.existingTransactionsFound} existing transactions found, ${this.newTransactionsFound} new transactions found`);
+  }
+
   async run() {
     try {
+      this.startRunStatistics();
       await Promise.all(CONFIG.SERVICES.map(async (service) => {
         const options = Object.assign({ companyId: service.companyId }, CONFIG.ADDITIONAL_OPTIONS);
         const scraper = createScraper(options);
@@ -94,6 +115,8 @@ class IsraelFinanceTelegramBot {
     } catch (e) {
       console.log('Got an error. Will try running again next interval. Error details:');
       console.error(e, e.stack);
+    } finally {
+      this.endRunStatistics();
     }
   }
 }
