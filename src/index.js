@@ -1,9 +1,9 @@
+import Telegram from './telegram';
 import { createScraper } from 'israeli-bank-scrapers';
 import JsonDB from 'node-json-db';
 import yargs from 'yargs';
 import keytar from 'keytar';
 import CONFIG from '../config';
-import Telegram from './telegram';
 import Utils from './utils';
 import { KEYTAR_SERVICE_NAME } from './consts';
 import setup from './setup';
