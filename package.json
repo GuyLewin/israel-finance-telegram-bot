@@ -30,7 +30,7 @@
     "pre-commit": "^1.2.2"
   },
   "dependencies": {
-    "israeli-bank-scrapers": "^0.6.4",
+    "israeli-bank-scrapers": "^0.6.9",
     "moment": "^2.19.3",
     "node-telegram-bot-api": "^0.30.0",
     "node-json-db": "^0.9.2",
