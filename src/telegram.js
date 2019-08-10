@@ -1,18 +1,18 @@
 process.env.NTBA_FIX_319 = 1;
 const TelegramBot = require('node-telegram-bot-api');
-import CONFIG from '../config';
+const config = require('../config');
 
 const replyListeners = {};
 
-export default class {
+class Telegram {
   constructor(transactionsToGoThroughDb) {
-    this.bot = new TelegramBot(CONFIG.TELEGRAM_TOKEN, { polling: true });
+    this.bot = new TelegramBot(config.TELEGRAM_TOKEN, { polling: true });
     this.transactionsToGoThroughDb = transactionsToGoThroughDb;
   }
 
   handleReply(transaction, message) {
     if (message.text !== 'לא') {
-      this.bot.sendMessage(CONFIG.TELEGRAM_CHAT_ID, 'חובה לציין פקודה. כרגע רק "לא" נתמך', {
+      this.bot.sendMessage(config.TELEGRAM_CHAT_ID, 'חובה לציין פקודה. כרגע רק "לא" נתמך', {
         reply_to_message_id: message.message_id,
       });
       return;
@@ -23,7 +23,7 @@ export default class {
     // We still want it to be set so no reply handler will be setup again in this runtime
     replyListeners[message.reply_to_message.message_id] = null;
 
-    this.bot.sendMessage(CONFIG.TELEGRAM_CHAT_ID, 'העסקה התווספה לרשימת העסקאות עליהן תוכל לעבור בעתיד');
+    this.bot.sendMessage(config.TELEGRAM_CHAT_ID, 'העסקה התווספה לרשימת העסקאות עליהן תוכל לעבור בעתיד');
   }
 
   registerReplyListener(messageId, transaction) {
@@ -33,7 +33,7 @@ export default class {
     }
 
     const replyListenerId = this.bot.onReplyToMessage(
-      CONFIG.TELEGRAM_CHAT_ID,
+      config.TELEGRAM_CHAT_ID,
       messageId,
       this.handleReply.bind(this, transaction),
     );
@@ -46,7 +46,8 @@ export default class {
   }
 
   sendMessage(message, messageSentCallback, transaction) {
-    this.bot.sendMessage(CONFIG.TELEGRAM_CHAT_ID, message)
+    this.bot.sendMessage(config.TELEGRAM_CHAT_ID, message)
       .then(this.handleSentMessage.bind(this, messageSentCallback, transaction));
   }
 }
+module.exports = Telegram;

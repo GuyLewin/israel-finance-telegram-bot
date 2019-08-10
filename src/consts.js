@@ -1,2 +1,2 @@
-export const SCRAPER_PASSWORD_FIELD_NAME = 'password';
-export const KEYTAR_SERVICE_NAME = 'israel-finance-telegram-bot';
+module.exports.SCRAPER_PASSWORD_FIELD_NAME = 'password';
+module.exports.KEYTAR_SERVICE_NAME = 'israel-finance-telegram-bot';

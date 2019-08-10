@@ -1,8 +1,8 @@
-import keytar from 'keytar';
-import inquirer from 'inquirer';
-import { SCRAPERS } from 'israeli-bank-scrapers';
-import CONFIG from '../config';
-import { SCRAPER_PASSWORD_FIELD_NAME, KEYTAR_SERVICE_NAME } from './consts';
+const keytar = require('keytar');
+const inquirer = require('inquirer');
+const israeliBankScrapers = require('israeli-bank-scrapers');
+const CONFIG = require('../config');
+const CONSTS = require('./consts');
 
 function validateNonEmpty(field, input) {
   if (input) {
@@ -12,7 +12,7 @@ function validateNonEmpty(field, input) {
 }
 
 function verifyServiceExists(service) {
-  if (Object.keys(SCRAPERS).indexOf(service.companyId) === -1) {
+  if (Object.keys(israeliBankScrapers.SCRAPERS).indexOf(service.companyId) === -1) {
     console.error(`Service ${service.companyId} (${service.niceName}) configured wrong`);
     return false;
   }
@@ -21,13 +21,13 @@ function verifyServiceExists(service) {
 
 function setKeytarCredentials(service, credentialsResult) {
   keytar.setPassword(
-    KEYTAR_SERVICE_NAME,
+    CONSTS.KEYTAR_SERVICE_NAME,
     service.credentialsIdentifier,
     JSON.stringify(credentialsResult),
   );
 }
 
-export default async function () {
+async function setup() {
   console.log('Setting up accounts. Credentials will be saved encrypted by your OS credentials storage');
 
   if (CONFIG.SERVICES.length === 0) {
@@ -51,10 +51,10 @@ export default async function () {
       };
     }),
   }]);
-  const { loginFields } = SCRAPERS[serviceResult.service.companyId];
+  const { loginFields } = israeliBankScrapers.SCRAPERS[serviceResult.service.companyId];
   const questions = loginFields.map((field) => {
     return {
-      type: field === SCRAPER_PASSWORD_FIELD_NAME ? SCRAPER_PASSWORD_FIELD_NAME : 'input',
+      type: field === CONSTS.SCRAPER_PASSWORD_FIELD_NAME ? CONSTS.SCRAPER_PASSWORD_FIELD_NAME : 'input',
       name: field,
       message: `Enter value for ${field}:`,
       validate: input => validateNonEmpty(field, input),
@@ -64,3 +64,5 @@ export default async function () {
   const credentialsResult = await inquirer.prompt(questions);
   setKeytarCredentials(serviceResult.service, credentialsResult);
 }
+
+module.exports = setup;

@@ -1,19 +1,19 @@
-import Telegram from './telegram';
-import { createScraper } from 'israeli-bank-scrapers';
-import JsonDB from 'node-json-db';
-import yargs from 'yargs';
-import keytar from 'keytar';
-import CONFIG from '../config';
-import Utils from './utils';
-import { KEYTAR_SERVICE_NAME } from './consts';
-import setup from './setup';
+const Telegram = require('./telegram');
+const israeliBankScrapers = require('israeli-bank-scrapers');
+const JsonDB = require('node-json-db');
+const yargs = require('yargs');
+const keytar = require('keytar');
+const config = require('../config');
+const Utils = require('./utils');
+const consts = require('./consts');
+const setup = require('./setup');
 
 class IsraelFinanceTelegramBot {
   constructor() {
     this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
     this.transactionsToGoThroughDb = new JsonDB('transactionsToGoThrough', true, true);
     this.telegram = new Telegram(this.transactionsToGoThroughDb);
-    setInterval(this.run.bind(this), CONFIG.SCRAPE_SECONDS_INTERVAL * 1000);
+    setInterval(this.run.bind(this), config.SCRAPE_SECONDS_INTERVAL * 1000);
   }
 
   static getMessageFromTransaction(transaction, cardNumber, serviceNiceName) {
@@ -67,13 +67,13 @@ class IsraelFinanceTelegramBot {
           this.telegram.registerReplyListener(telegramMessageId, transaction);
         }
         this.existingTransactionsFound += 1;
-        if (CONFIG.VERBOSE) {
+        if (config.VERBOSE) {
           console.log(`Found existing transaction: ${handledTransactionsDbPath}`);
         }
         return;
       }
       this.newTransactionsFound += 1;
-      if (CONFIG.VERBOSE) {
+      if (config.VERBOSE) {
         console.log(`Found new transaction: ${handledTransactionsDbPath}`);
       }
       const message = IsraelFinanceTelegramBot.getMessageFromTransaction(
@@ -103,20 +103,20 @@ class IsraelFinanceTelegramBot {
   }
 
   async getCredentialsForService(service) {
-    return keytar.getPassword(KEYTAR_SERVICE_NAME, service.credentialsIdentifier);
+    return keytar.getPassword(consts.KEYTAR_SERVICE_NAME, service.credentialsIdentifier);
   }
 
   async run() {
     try {
       this.startRunStatistics();
-      await Promise.all(CONFIG.SERVICES.map(async (service) => {
+      await Promise.all(config.SERVICES.map(async (service) => {
         const credentials = await this.getCredentialsForService(service);
         if (credentials === null) {
           console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
           process.exit();
         }
-        const options = Object.assign({ companyId: service.companyId }, CONFIG.ADDITIONAL_OPTIONS);
-        const scraper = createScraper(options);
+        const options = Object.assign({ companyId: service.companyId }, config.ADDITIONAL_OPTIONS);
+        const scraper = israeliBankScrapers.createScraper(options);
         const scrapeResult = await scraper.scrape(JSON.parse(credentials));
 
         if (scrapeResult.success) {

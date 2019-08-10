@@ -1,6 +1,6 @@
-import moment from 'moment';
+const moment = require('moment');
 
-export default {
+module.exports = {
   SCRAPE_SECONDS_INTERVAL: 1 * 60 * 60, // 1 hour
   SERVICES: [
     {

@@ -1,4 +1,4 @@
-export default class {
+class Utils {
   static transactionCompare(a, b) {
     const dateA = new Date(a.date);
     const dateB = new Date(b.date);
@@ -12,3 +12,5 @@ export default class {
     return comparison;
   }
 }
+
+module.exports = Utils;
