@@ -16,7 +16,13 @@ module.exports = {
     {
       companyId: 'isracard',
       niceName: 'ישראכרט',
-      credentialsIdentifier: 'isracard1',
+      // Also possible to define credentials hard-coded within config instead of in keychain
+      // (not recommended, mainly for Linux machines without GUI)
+      credentials: {
+        id: '000000000',
+        card6Digits: '000000',
+        password: '',
+      },
     },
   ],
   ADDITIONAL_OPTIONS: {

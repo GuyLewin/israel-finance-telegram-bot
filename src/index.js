@@ -103,7 +103,16 @@ class IsraelFinanceTelegramBot {
   }
 
   async getCredentialsForService(service) {
-    return keytar.getPassword(consts.KEYTAR_SERVICE_NAME, service.credentialsIdentifier);
+    if (service.credentials) {
+      // Allow defining credentials within config (without keytar)
+      return service.credentials;
+    }
+    return keytar.getPassword(
+      consts.KEYTAR_SERVICE_NAME,
+      service.credentialsIdentifier,
+    ).then((keytarPassword) => {
+      return JSON.parse(keytarPassword);
+    });
   }
 
   async run() {
@@ -117,7 +126,7 @@ class IsraelFinanceTelegramBot {
         }
         const options = Object.assign({ companyId: service.companyId }, config.ADDITIONAL_OPTIONS);
         const scraper = israeliBankScrapers.createScraper(options);
-        const scrapeResult = await scraper.scrape(JSON.parse(credentials));
+        const scrapeResult = await scraper.scrape(credentials);
 
         if (scrapeResult.success) {
           scrapeResult.accounts.forEach(this.handleAccount.bind(this, service));
