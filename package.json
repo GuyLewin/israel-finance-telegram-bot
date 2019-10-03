@@ -16,6 +16,10 @@
     "type": "git",
     "url": "git+https://github.com/GuyLewin/israel-finance-telegram-bot.git"
   },
+  "files": [
+    "src",
+    "israel-finance-telegram-bot.js"
+  ],
   "author": "Guy Lewin",
   "license": "GPL-3.0",
   "devDependencies": {
