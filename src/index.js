@@ -146,7 +146,7 @@ class IsraelFinanceTelegramBot {
 
 async function toExport() {
   const keyVaultUrl = process.env[consts.KEY_VAULT_URL_ENV_NAME];
-  const keyVaultClient = KeyVaultUtils.getKeyVaultClient(keyVaultUrl);
+  const keyVaultClient = KeyVaultUtils.getClient(keyVaultUrl);
   const telegramToken = await KeyVaultUtils.getSecret(
     keyVaultClient,
     consts.TELEGRAM_TOKEN_SECRET_NAME,
