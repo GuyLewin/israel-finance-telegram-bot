@@ -4,7 +4,7 @@
       "name": "IsraelFinanceTelegramBot",
       "type": "timerTrigger",
       "direction": "in",
-      "schedule": "8 */15 * * * *"
+      "schedule": "8 */3 * * * *"
     }
   ]
 }
