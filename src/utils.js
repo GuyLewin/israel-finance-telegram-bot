@@ -1,6 +1,3 @@
-const keyvaultSecrets = require('@azure/keyvault-secrets');
-const identity = require('@azure/identity');
-
 class Utils {
   static transactionCompare(a, b) {
     const dateA = new Date(a.date);
@@ -13,14 +10,6 @@ class Utils {
       comparison = -1;
     }
     return comparison;
-  }
-
-  static getKeyVaultClient(keyVaultUrl) {
-    return new keyvaultSecrets.SecretClient(keyVaultUrl, new identity.DefaultAzureCredential());
-  }
-
-  static getKeyVaultSecret(keyVaultClient, secretName) {
-    return keyVaultClient.getSecret(secretName);
   }
 }
 

@@ -3,6 +3,7 @@ const israeliBankScrapers = require('israeli-bank-scrapers');
 const JsonDB = require('node-json-db');
 const moment = require('moment');
 const Utils = require('./utils');
+const KeyVaultUtils = require('./keyvaultutils');
 const consts = require('./consts');
 
 class IsraelFinanceTelegramBot {
@@ -106,8 +107,8 @@ class IsraelFinanceTelegramBot {
       return service.credentials;
     }
 
-    return this.keyVaultClient.getSecret(service.credentialsIdentifier)
-      .then(password => JSON.parse(password));
+    return KeyVaultUtils.getSecret(this.keyVaultClient, service.credentialsIdentifier)
+      .then(credentialsJson => JSON.parse(credentialsJson));
   }
 
   async run() {
@@ -144,9 +145,16 @@ class IsraelFinanceTelegramBot {
 }
 
 async function toExport() {
-  const keyVaultClient = Utils.getKeyVaultClient(process.env[consts.KEY_VAULT_URL_ENV_NAME]);
-  const telegramToken = await keyVaultClient.getSecret(consts.TELEGRAM_TOKEN_SECRET_NAME);
-  const telegramChatId = await keyVaultClient.getSecret(consts.TELEGRAM_CHAT_ID_SECRET_NAME);
+  const keyVaultUrl = process.env[consts.KEY_VAULT_URL_ENV_NAME];
+  const keyVaultClient = KeyVaultUtils.getKeyVaultClient(keyVaultUrl);
+  const telegramToken = await KeyVaultUtils.getSecret(
+    keyVaultClient,
+    consts.TELEGRAM_TOKEN_SECRET_NAME,
+  );
+  const telegramChatId = await KeyVaultUtils.getSecret(
+    keyVaultClient,
+    consts.TELEGRAM_CHAT_ID_SECRET_NAME,
+  );
   const iftb = new IsraelFinanceTelegramBot(keyVaultClient, telegramToken, telegramChatId);
   iftb.run();
 }
