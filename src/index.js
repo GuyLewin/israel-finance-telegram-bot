@@ -6,6 +6,8 @@ const Utils = require('./utils');
 const KeyVaultUtils = require('./keyvaultutils');
 const consts = require('./consts');
 
+let alreadyRunning = false;
+
 class IsraelFinanceTelegramBot {
   constructor(keyVaultClient, telegramToken, telegramChatId) {
     this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
@@ -140,11 +142,17 @@ class IsraelFinanceTelegramBot {
       console.error(e, e.stack);
     } finally {
       this.endRunStatistics();
+      alreadyRunning = false;
     }
   }
 }
 
 async function toExport() {
+  if (alreadyRunning) {
+    return;
+  }
+  alreadyRunning = true;
+
   const keyVaultUrl = process.env[consts.KEY_VAULT_URL_ENV_NAME];
   const keyVaultClient = KeyVaultUtils.getClient(keyVaultUrl);
   const telegramToken = await KeyVaultUtils.getSecret(
@@ -155,8 +163,12 @@ async function toExport() {
     keyVaultClient,
     consts.TELEGRAM_CHAT_ID_SECRET_NAME,
   );
-  const iftb = new IsraelFinanceTelegramBot(keyVaultClient, telegramToken, telegramChatId);
-  iftb.run();
+  try {
+    const iftb = new IsraelFinanceTelegramBot(keyVaultClient, telegramToken, telegramChatId);
+    iftb.run();
+  } catch (e) {
+    alreadyRunning = false;
+  }
 }
 
 module.exports = toExport;
