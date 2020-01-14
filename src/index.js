@@ -10,8 +10,12 @@ class IsraelFinanceTelegramBot {
     this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
     this.transactionsToGoThroughDb = new JsonDB('transactionsToGoThrough', true, true);
     this.keyVaultClient = Utils.getKeyVaultClient(process.env[consts.KEY_VAULT_URL_ENV_NAME]);
-    this.telegram = new Telegram(this.transactionsToGoThroughDb, this.keyVaultClient
-      .then(client => Utils.getKeyVaultSecret(client, service.credentialsIdentifier)));
+    const telegramToken = await this.keyVaultClient
+    .then(client => Utils.getKeyVaultSecret(client, consts.TELEGRAM_TOKEN_SECRET_NAME));
+    const telegramChatId = await this.keyVaultClient
+    .then(client => Utils.getKeyVaultSecret(client, consts.TELEGRAM_CHAT_ID_SECRET_NAME));
+    
+    this.telegram = new Telegram(this.transactionsToGoThroughDb, telegramToken, telegramChatId);
     this.isVerbose = JSON.parse(process.env[consts.IS_VERBOSE_ENV_NAME]);
   }
 
