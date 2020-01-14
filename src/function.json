@@ -1,0 +1,11 @@
+{
+  "bindings": [
+    {
+      "name": "IsraelFinanceTelegramBot",
+      "type": "timerTrigger",
+      "direction": "in",
+      //"schedule": "8 */30 * * * *"
+      "schedule": "*/15 * * * * *"
+    }
+  ]
+}

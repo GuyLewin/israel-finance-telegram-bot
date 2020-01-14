@@ -1,19 +1,18 @@
 const Telegram = require('./telegram');
 const israeliBankScrapers = require('israeli-bank-scrapers');
 const JsonDB = require('node-json-db');
-const yargs = require('yargs');
-const keytar = require('keytar');
 const config = require('../config');
 const Utils = require('./utils');
 const consts = require('./consts');
-const setup = require('./setup');
 
 class IsraelFinanceTelegramBot {
   constructor() {
     this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
     this.transactionsToGoThroughDb = new JsonDB('transactionsToGoThrough', true, true);
-    this.telegram = new Telegram(this.transactionsToGoThroughDb);
-    setInterval(this.run.bind(this), config.SCRAPE_SECONDS_INTERVAL * 1000);
+    this.keyVaultClient = Utils.getKeyVaultClient(process.env[consts.KEY_VAULT_URL_ENV_NAME]);
+    this.telegram = new Telegram(this.transactionsToGoThroughDb, this.keyVaultClient
+      .then(client => Utils.getKeyVaultSecret(client, service.credentialsIdentifier)));
+    this.isVerbose = JSON.parse(process.env[consts.IS_VERBOSE_ENV_NAME]);
   }
 
   static getMessageFromTransaction(transaction, cardNumber, serviceNiceName) {
@@ -67,13 +66,13 @@ class IsraelFinanceTelegramBot {
           this.telegram.registerReplyListener(telegramMessageId, transaction);
         }
         this.existingTransactionsFound += 1;
-        if (config.VERBOSE) {
+        if (this.isVerbose) {
           console.log(`Found existing transaction: ${handledTransactionsDbPath}`);
         }
         return;
       }
       this.newTransactionsFound += 1;
-      if (config.VERBOSE) {
+      if (this.isVerbose) {
         console.log(`Found new transaction: ${handledTransactionsDbPath}`);
       }
       const message = IsraelFinanceTelegramBot.getMessageFromTransaction(
@@ -107,12 +106,10 @@ class IsraelFinanceTelegramBot {
       // Allow defining credentials within config (without keytar)
       return service.credentials;
     }
-    return keytar.getPassword(
-      consts.KEYTAR_SERVICE_NAME,
-      service.credentialsIdentifier,
-    ).then((keytarPassword) => {
-      return JSON.parse(keytarPassword);
-    });
+
+    return this.keyVaultClient
+      .then(client => Utils.getKeyVaultSecret(client, service.credentialsIdentifier))
+      .then(password => JSON.parse(password));
   }
 
   async run() {
@@ -143,9 +140,9 @@ class IsraelFinanceTelegramBot {
   }
 }
 
-if (yargs.argv.setup) {
-  setup();
-} else {
+async function toExport() {
   const iftb = new IsraelFinanceTelegramBot();
   iftb.run();
 }
+
+module.exports = toExport;
