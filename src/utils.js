@@ -1,9 +1,5 @@
 const SecretClient = require('@azure/keyvault-secrets');
-const nodeauth = require('@azure/ms-rest-nodeauth');
-
-const options = {
-  msiEndpoint: 'http://127.0.0.1:41741/MSI/token/',
-};
+const identity = require('@azure/identity');
 
 class Utils {
   static transactionCompare(a, b) {
@@ -20,8 +16,7 @@ class Utils {
   }
 
   static getKeyVaultClient(keyVaultUrl) {
-    return nodeauth.loginWithAppServiceMSI(options)
-      .then(token => new SecretClient(keyVaultUrl, token));
+    return new SecretClient(keyVaultUrl, new identity.DefaultAzureCredential());
   }
 
   static getKeyVaultSecret(keyVaultClient, secretName) {
