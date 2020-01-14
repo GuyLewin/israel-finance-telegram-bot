@@ -1,7 +1,7 @@
 const Telegram = require('./telegram');
 const israeliBankScrapers = require('israeli-bank-scrapers');
 const JsonDB = require('node-json-db');
-const config = require('../config');
+const moment = require('moment');
 const Utils = require('./utils');
 const consts = require('./consts');
 
@@ -114,13 +114,18 @@ class IsraelFinanceTelegramBot {
   async run() {
     try {
       this.startRunStatistics();
-      await Promise.all(config.SERVICES.map(async (service) => {
+      const services = JSON.parse(process.env[consts.SERVICES_JSON_ENV_NAME]);
+      await Promise.all(services.map(async (service) => {
         const credentials = await this.getCredentialsForService(service);
         if (credentials === null) {
           console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
           process.exit();
         }
-        const options = Object.assign({ companyId: service.companyId }, config.ADDITIONAL_OPTIONS);
+        const options = Object.assign({ companyId: service.companyId }, {
+          startDate: moment()
+            .startOf('month')
+            .subtract(parseInt(process.env[consts.MONTHS_TO_SCAN_BACK_ENV_NAME], 10), 'month'),
+        });
         const scraper = israeliBankScrapers.createScraper(options);
         const scrapeResult = await scraper.scrape(credentials);
 
