@@ -1,4 +1,4 @@
-const SecretClient = require('@azure/keyvault-secrets');
+const keyvaultSecrets = require('@azure/keyvault-secrets');
 const identity = require('@azure/identity');
 
 class Utils {
@@ -16,7 +16,7 @@ class Utils {
   }
 
   static getKeyVaultClient(keyVaultUrl) {
-    return new SecretClient(keyVaultUrl, new identity.DefaultAzureCredential());
+    return new keyvaultSecrets.SecretClient(keyVaultUrl, new identity.DefaultAzureCredential());
   }
 
   static getKeyVaultSecret(keyVaultClient, secretName) {
