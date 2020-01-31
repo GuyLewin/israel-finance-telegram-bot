@@ -1,17 +1,19 @@
 const Telegram = require('./telegram');
 const israeliBankScrapers = require('israeli-bank-scrapers');
-const JsonDB = require('node-json-db');
+const nodeJsonDb = require('node-json-db');
 const moment = require('moment');
 const Utils = require('./utils');
 const KeyVaultUtils = require('./keyvaultutils');
 const consts = require('./consts');
 
+const HANDLED_TRANSACTIONS = process.env[consts.HANDLED_TRANSACTIONS_DB_PATH_ENV_NAME];
+const TRANSACTIONS_TO_GO_THROUGH = process.env[consts.TRANSACTIONS_TO_GO_THROUGH_DB_PATH_ENV_NAME];
 const INTERVAL_SECONDS = parseInt(process.env[consts.INTERVAL_SECONDS_ENV_NAME], 10);
 
 class IsraelFinanceTelegramBot {
   constructor(keyVaultClient, telegramToken, telegramChatId) {
-    this.handledTransactionsDb = new JsonDB('handledTransactions', true, false);
-    this.transactionsToGoThroughDb = new JsonDB('transactionsToGoThrough', true, true);
+    this.handledTransactionsDb = new nodeJsonDb.JsonDB(HANDLED_TRANSACTIONS, true, false);
+    this.transactionsToGoThroughDb = new nodeJsonDb.JsonDB(TRANSACTIONS_TO_GO_THROUGH, true, true);
     this.keyVaultClient = keyVaultClient;
     this.telegram = new Telegram(this.transactionsToGoThroughDb, telegramToken, telegramChatId);
     this.isVerbose = JSON.parse(process.env[consts.IS_VERBOSE_ENV_NAME]);
@@ -114,33 +116,38 @@ class IsraelFinanceTelegramBot {
       .then(credentialsJson => JSON.parse(credentialsJson));
   }
 
+  async handleService(service) {
+    if (this.isVerbose) {
+      console.log(`Starting to scrape service: ${JSON.stringify(service)}`);
+    }
+    const credentials = await this.getCredentialsForService(service);
+    if (credentials === null) {
+      console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
+      process.exit();
+    }
+    const options = Object.assign({ companyId: service.companyId }, {
+      verbose: this.isVerbose,
+      startDate: moment()
+        .startOf('month')
+        .subtract(parseInt(process.env[consts.MONTHS_TO_SCAN_BACK_ENV_NAME], 10), 'month'),
+    });
+    const scraper = israeliBankScrapers.createScraper(options);
+    const scrapeResult = await scraper.scrape(credentials);
+
+    if (scrapeResult.success) {
+      scrapeResult.accounts.forEach(this.handleAccount.bind(this, service));
+    } else {
+      console.error(`scraping failed for the following reason: ${scrapeResult.errorType}`);
+    }
+  }
+
   async run() {
     try {
       this.startRunStatistics();
       const services = JSON.parse(process.env[consts.SERVICES_JSON_ENV_NAME]);
       await Promise.all(services.map(async (service) => {
-        if (this.isVerbose) {
-          console.log(`Starting to scrape service: ${JSON.stringify(service)}`);
-        }
-        const credentials = await this.getCredentialsForService(service);
-        if (credentials === null) {
-          console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
-          process.exit();
-        }
-        const options = Object.assign({ companyId: service.companyId }, {
-          verbose: this.isVerbose,
-          startDate: moment()
-            .startOf('month')
-            .subtract(parseInt(process.env[consts.MONTHS_TO_SCAN_BACK_ENV_NAME], 10), 'month'),
-        });
-        const scraper = israeliBankScrapers.createScraper(options);
-        const scrapeResult = await scraper.scrape(credentials);
-
-        if (scrapeResult.success) {
-          scrapeResult.accounts.forEach(this.handleAccount.bind(this, service));
-        } else {
-          console.error(`scraping failed for the following reason: ${scrapeResult.errorType}`);
-        }
+        // Block each service
+        await this.handleService(service);
       }));
     } catch (e) {
       console.log('Got an error. Will try running again next interval. Error details:');

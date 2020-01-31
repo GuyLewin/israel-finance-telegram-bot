@@ -4,6 +4,8 @@ module.exports.IS_VERBOSE_ENV_NAME = 'IsVerbose';
 module.exports.SERVICES_JSON_ENV_NAME = 'ServicesJson';
 module.exports.MONTHS_TO_SCAN_BACK_ENV_NAME = 'MonthsToScanBack';
 module.exports.INTERVAL_SECONDS_ENV_NAME = 'IntervalSeconds';
+module.exports.HANDLED_TRANSACTIONS_DB_PATH_ENV_NAME = 'HandledTransactionsDbPath';
+module.exports.TRANSACTIONS_TO_GO_THROUGH_DB_PATH_ENV_NAME = 'TransactionsToGoThroughDbPath';
 
 // Azure KeyVault Secrets
 module.exports.TELEGRAM_TOKEN_SECRET_NAME = 'TelegramToken';
