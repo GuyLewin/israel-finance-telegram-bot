@@ -119,12 +119,16 @@ class IsraelFinanceTelegramBot {
       this.startRunStatistics();
       const services = JSON.parse(process.env[consts.SERVICES_JSON_ENV_NAME]);
       await Promise.all(services.map(async (service) => {
+        if (this.isVerbose) {
+          console.log(`Starting to scrape service: ${JSON.stringify(service)}`);
+        }
         const credentials = await this.getCredentialsForService(service);
         if (credentials === null) {
           console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
           process.exit();
         }
         const options = Object.assign({ companyId: service.companyId }, {
+          verbose: this.isVerbose,
           startDate: moment()
             .startOf('month')
             .subtract(parseInt(process.env[consts.MONTHS_TO_SCAN_BACK_ENV_NAME], 10), 'month'),
