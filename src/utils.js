@@ -11,6 +11,10 @@ class Utils {
     }
     return comparison;
   }
+
+  static parseJsonEnvWithDefault(envName, defaultValue) {
+    return process.env[envName] ? JSON.parse(process.env[envName]) : defaultValue;
+  }
 }
 
 module.exports = Utils;
