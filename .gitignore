@@ -87,12 +87,6 @@ typings/
 dist
 out
 
-# Azure Functions artifacts
-bin
-obj
-appsettings.json
-local.settings.json
-
 # Israel Finance Telegram Bot configurations
 transactionsToGoThrough.json
 handledTransactions.json
