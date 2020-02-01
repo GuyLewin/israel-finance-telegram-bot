@@ -8,12 +8,12 @@ const consts = require('./consts');
 
 const HANDLED_TRANSACTIONS = process.env[consts.HANDLED_TRANSACTIONS_DB_PATH_ENV_NAME] || 'handledTransactions';
 const TRANSACTIONS_TO_GO_THROUGH = process.env[consts.TRANSACTIONS_TO_GO_THROUGH_DB_PATH_ENV_NAME] || 'transactionsToGoThrough';
-const KEY_VAULT_ENABLED = Utils.parseJsonEnvWithDefault(consts.KEY_VAULT_ENABLED_ENV_NAME, false);
 const INTERVAL_SECONDS_STR = process.env[consts.INTERVAL_SECONDS_ENV_NAME];
 // Default - once an hour
 const INTERVAL_SECONDS = INTERVAL_SECONDS_STR ? parseInt(INTERVAL_SECONDS_STR, 10) : 3600;
 // Default - not verbose
 const IS_VERBOSE = Utils.parseJsonEnvWithDefault(consts.IS_VERBOSE_ENV_NAME, false);
+const KEY_VAULT_URL = process.env[consts.KEY_VAULT_URL_ENV_NAME];
 
 class IsraelFinanceTelegramBot {
   constructor(keyVaultClient, telegramToken, telegramChatId) {
@@ -171,9 +171,8 @@ async function main() {
   let keyVaultClient;
   let telegramToken;
   let telegramChatId;
-  if (KEY_VAULT_ENABLED) {
-    const keyVaultUrl = process.env[consts.KEY_VAULT_URL_ENV_NAME];
-    keyVaultClient = KeyVaultUtils.getClient(keyVaultUrl);
+  if (KEY_VAULT_URL) {
+    keyVaultClient = KeyVaultUtils.getClient(KEY_VAULT_URL);
     telegramToken = await KeyVaultUtils.getSecret(
       keyVaultClient,
       consts.TELEGRAM_TOKEN_SECRET_NAME,
