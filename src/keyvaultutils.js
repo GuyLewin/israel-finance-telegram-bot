@@ -11,4 +11,4 @@ class KeyVaultUtils {
   }
 }
 
-module.exports = KeyVaultUtils;
+module.exports.KeyVaultUtils = KeyVaultUtils;

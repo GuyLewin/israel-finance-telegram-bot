@@ -50,4 +50,4 @@ class Telegram {
       .then(this.handleSentMessage.bind(this, messageSentCallback, transaction));
   }
 }
-module.exports = Telegram;
+module.exports.Telegram = Telegram;

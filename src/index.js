@@ -1,27 +1,24 @@
-const Telegram = require('./telegram');
+const { Telegram } = require('./telegram');
 const israeliBankScrapers = require('israeli-bank-scrapers');
-const nodeJsonDb = require('node-json-db');
+const { JsonDB } = require('node-json-db');
 const moment = require('moment');
-const Utils = require('./utils');
-const KeyVaultUtils = require('./keyvaultutils');
+const { Utils } = require('./utils');
+const { KeyVaultUtils } = require('./keyvaultutils');
 const consts = require('./consts');
-
-const HANDLED_TRANSACTIONS = process.env[consts.HANDLED_TRANSACTIONS_DB_PATH_ENV_NAME] || 'handledTransactions';
-const TRANSACTIONS_TO_GO_THROUGH = process.env[consts.TRANSACTIONS_TO_GO_THROUGH_DB_PATH_ENV_NAME] || 'transactionsToGoThrough';
-const INTERVAL_SECONDS_STR = process.env[consts.INTERVAL_SECONDS_ENV_NAME];
-// Default - once an hour
-const INTERVAL_SECONDS = INTERVAL_SECONDS_STR ? parseInt(INTERVAL_SECONDS_STR, 10) : 3600;
-// Default - not verbose
-const IS_VERBOSE = Utils.parseJsonEnvWithDefault(consts.IS_VERBOSE_ENV_NAME, false);
-const KEY_VAULT_URL = process.env[consts.KEY_VAULT_URL_ENV_NAME];
+const { EnvParams } = require('./envparams');
 
 class IsraelFinanceTelegramBot {
-  constructor(keyVaultClient, telegramToken, telegramChatId) {
-    this.handledTransactionsDb = new nodeJsonDb.JsonDB(HANDLED_TRANSACTIONS, true, false);
-    this.transactionsToGoThroughDb = new nodeJsonDb.JsonDB(TRANSACTIONS_TO_GO_THROUGH, true, true);
+  constructor(keyVaultClient, telegramToken, telegramChatId, envParams) {
     this.keyVaultClient = keyVaultClient;
+    this.envParams = envParams;
+    this.handledTransactionsDb = new JsonDB(envParams.handledTransactionsDbPath, true, false);
+    this.flaggedTransactionsDb = new JsonDB(envParams.flaggedTransactionsDbPath, true, true);
     this.telegram = new Telegram(this.transactionsToGoThroughDb, telegramToken, telegramChatId);
-    setInterval(this.run.bind(this), INTERVAL_SECONDS * 1000);
+    this.setPeriodicRun();
+  }
+
+  setPeriodicRun() {
+    setInterval(this.run.bind(this), this.envParams.intervalSeconds * 1000);
   }
 
   static getMessageFromTransaction(transaction, cardNumber, serviceNiceName) {
@@ -75,13 +72,13 @@ class IsraelFinanceTelegramBot {
           this.telegram.registerReplyListener(telegramMessageId, transaction);
         }
         this.existingTransactionsFound += 1;
-        if (IS_VERBOSE) {
+        if (this.envParams.isVerbose) {
           console.log(`Found existing transaction: ${handledTransactionsDbPath}`);
         }
         return;
       }
       this.newTransactionsFound += 1;
-      if (IS_VERBOSE) {
+      if (this.envParams.isVerbose) {
         console.log(`Found new transaction: ${handledTransactionsDbPath}`);
       }
       const message = IsraelFinanceTelegramBot.getMessageFromTransaction(
@@ -112,7 +109,7 @@ class IsraelFinanceTelegramBot {
 
   async getCredentialsForService(service) {
     if (service.credentials) {
-      // Allow defining credentials within config (without keytar)
+      // Allow defining credentials within services JSON (without Azure KeyVault)
       return service.credentials;
     }
 
@@ -125,7 +122,7 @@ class IsraelFinanceTelegramBot {
   }
 
   async handleService(service) {
-    if (IS_VERBOSE) {
+    if (this.envParams.isVerbose) {
       console.log(`Starting to scrape service: ${JSON.stringify(service)}`);
     }
     const credentials = await this.getCredentialsForService(service);
@@ -134,10 +131,10 @@ class IsraelFinanceTelegramBot {
       process.exit();
     }
     const options = Object.assign({ companyId: service.companyId }, {
-      verbose: IS_VERBOSE,
+      verbose: this.envParams.isVerbose,
       startDate: moment()
         .startOf('month')
-        .subtract(parseInt(process.env[consts.MONTHS_TO_SCAN_BACK_ENV_NAME], 10), 'month'),
+        .subtract(this.envParams.monthsToScanBack, 'month'),
     });
     const scraper = israeliBankScrapers.createScraper(options);
     const scrapeResult = await scraper.scrape(credentials);
@@ -152,7 +149,7 @@ class IsraelFinanceTelegramBot {
   async run() {
     try {
       this.startRunStatistics();
-      const services = JSON.parse(process.env[consts.SERVICES_JSON_ENV_NAME]);
+      const services = this.envParams.servicesJson;
       // eslint-disable-next-line no-restricted-syntax
       for (const service of services) {
         // Block each request separately
@@ -168,11 +165,22 @@ class IsraelFinanceTelegramBot {
 }
 
 async function main() {
+  let envParams;
+  try {
+    envParams = new EnvParams();
+  } catch (e) {
+    console.log('Got error while parsing environment variables');
+    // Don't print the stack trace in this case
+    console.error(e);
+    EnvParams.printUsage();
+    process.exit(1);
+  }
+
   let keyVaultClient;
   let telegramToken;
   let telegramChatId;
-  if (KEY_VAULT_URL) {
-    keyVaultClient = KeyVaultUtils.getClient(KEY_VAULT_URL);
+  if (envParams.keyVaultUrl) {
+    keyVaultClient = KeyVaultUtils.getClient(envParams.keyVaultUrl);
     telegramToken = await KeyVaultUtils.getSecret(
       keyVaultClient,
       consts.TELEGRAM_TOKEN_SECRET_NAME,
@@ -182,11 +190,15 @@ async function main() {
       consts.TELEGRAM_CHAT_ID_SECRET_NAME,
     );
   } else {
-    telegramToken = process.env[consts.TELEGRAM_TOKEN_ENV_NAME];
-    telegramChatId = process.env[consts.TELEGRAM_CHAT_ID_ENV_NAME];
+    ({ telegramToken, telegramChatId } = envParams);
   }
   try {
-    const iftb = new IsraelFinanceTelegramBot(keyVaultClient, telegramToken, telegramChatId);
+    const iftb = new IsraelFinanceTelegramBot(
+      keyVaultClient,
+      telegramToken,
+      telegramChatId,
+      envParams,
+    );
     iftb.run();
   } catch (e) {
     console.log(`Error in main(): ${e}`);
