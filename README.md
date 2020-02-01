@@ -108,7 +108,7 @@ az keyvault set-policy \
 Browse to the newly created Azure Container Instance via Azure Portal to see it running. If something went wrong - the container should output errors through the log.
 
 ### Docker Installation
-If you don't have an Azure Cloud subscription - this is the recommended method. This system is pushed to Docker Hub and can be used without installing NodeJS or configuring the host machine.
+If you don't have an Azure Cloud subscription - this is the recommended method. This system is pushed to [Docker Hub](https://hub.docker.com/repository/docker/guylewin/israel-finance-telegram-bot) and can be used without installing NodeJS or configuring the host machine.
 Once you have `ServicesJson`, `TelegramToken` and `TelegramChatId` ready (from the previous steps) - simply run this command and replace the environment variables with the ones you created:
 ```bash
 docker run --env ServicesJson='[{"companyId":"hapoalim","credentialsIdentifier":"hapoalim1","niceName":"בנק הפועלים"},{"companyId":"amex","credentialsIdentifier":"amex1","niceName":"אמריקן אקספרס"},{"companyId":"isracard","credentialsIdentifier":"isracard1","niceName":"ישראכרט"}]' --env TelegramToken='123' --env TelegramChatId=123 guylewin/israel-finance-telegram-bot
