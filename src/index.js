@@ -13,7 +13,7 @@ class IsraelFinanceTelegramBot {
     this.envParams = envParams;
     this.handledTransactionsDb = new JsonDB(envParams.handledTransactionsDbPath, true, false);
     this.flaggedTransactionsDb = new JsonDB(envParams.flaggedTransactionsDbPath, true, true);
-    this.telegram = new Telegram(this.transactionsToGoThroughDb, telegramToken, telegramChatId);
+    this.telegram = new Telegram(this.flaggedTransactionsDb, telegramToken, telegramChatId);
     this.setPeriodicRun();
   }
 
@@ -68,7 +68,7 @@ class IsraelFinanceTelegramBot {
       const handledTransactionsDbPath = `/${service.companyId}/${identifier}`;
       if (this.handledTransactionsDb.exists(handledTransactionsDbPath)) {
         const telegramMessageId = this.handledTransactionsDb.getData(`${handledTransactionsDbPath}/telegramMessageId`);
-        if (!(this.transactionsToGoThroughDb.exists(`/${telegramMessageId}`))) {
+        if (!(this.flaggedTransactionsDb.exists(`/${telegramMessageId}`))) {
           this.telegram.registerReplyListener(telegramMessageId, transaction);
         }
         this.existingTransactionsFound += 1;

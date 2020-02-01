@@ -4,10 +4,10 @@ const TelegramBot = require('node-telegram-bot-api');
 const replyListeners = {};
 
 class Telegram {
-  constructor(transactionsToGoThroughDb, telegramToken, telegramChatId) {
+  constructor(flaggedTransactionsDb, telegramToken, telegramChatId) {
     this.bot = new TelegramBot(telegramToken, { polling: true });
     this.telegramChatId = telegramChatId;
-    this.transactionsToGoThroughDb = transactionsToGoThroughDb;
+    this.flaggedTransactionsDb = flaggedTransactionsDb;
   }
 
   handleReply(transaction, message) {
@@ -17,7 +17,7 @@ class Telegram {
       });
       return;
     }
-    this.transactionsToGoThroughDb.push(`/${message.message_id}`, transaction, true);
+    this.flaggedTransactionsDb.push(`/${message.message_id}`, transaction, true);
 
     this.bot.removeReplyListener(replyListeners[message.reply_to_message.message_id]);
     // We still want it to be set so no reply handler will be setup again in this runtime
