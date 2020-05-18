@@ -2,18 +2,21 @@ const { Telegram } = require('./telegram');
 const israeliBankScrapers = require('israeli-bank-scrapers');
 const { JsonDB } = require('node-json-db');
 const moment = require('moment');
+const puppeteer = require('puppeteer');
+const yargs = require('yargs');
 const { Utils } = require('./utils');
 const { KeyVaultUtils } = require('./keyvaultutils');
 const consts = require('./consts');
 const { EnvParams } = require('./envparams');
 
 class IsraelFinanceTelegramBot {
-  constructor(keyVaultClient, telegramToken, telegramChatId, envParams) {
+  constructor(keyVaultClient, telegramToken, telegramChatId, envParams, isDocker) {
     this.keyVaultClient = keyVaultClient;
     this.envParams = envParams;
     this.handledTransactionsDb = new JsonDB(envParams.handledTransactionsDbPath, true, false);
     this.flaggedTransactionsDb = new JsonDB(envParams.flaggedTransactionsDbPath, true, true);
     this.telegram = new Telegram(this.flaggedTransactionsDb, telegramToken, telegramChatId);
+    this.isDocker = isDocker;
     this.setPeriodicRun();
   }
 
@@ -125,18 +128,20 @@ class IsraelFinanceTelegramBot {
     if (this.envParams.isVerbose) {
       console.log(`Starting to scrape service: ${JSON.stringify(service)}`);
     }
-    const credentials = await this.getCredentialsForService(service);
-    if (credentials === null) {
-      console.error(`"npm run setup" must be ran before running bot (failed on service ${service.niceName}`);
-      process.exit();
-    }
     const options = Object.assign({ companyId: service.companyId }, {
       verbose: this.envParams.isVerbose,
       startDate: moment()
         .startOf('month')
         .subtract(this.envParams.monthsToScanBack, 'month'),
     });
+    if (this.isDocker) {
+      options.browser = await puppeteer.launch({
+        executablePath: '/usr/bin/chromium-browser',
+        args: ['--no-sandbox', '--disable-dev-shm-usage'],
+      });
+    }
     const scraper = israeliBankScrapers.createScraper(options);
+    const credentials = await this.getCredentialsForService(service);
     const scrapeResult = await scraper.scrape(credentials);
 
     if (scrapeResult.success) {
@@ -192,12 +197,14 @@ async function main() {
   } else {
     ({ telegramToken, telegramChatId } = envParams);
   }
+
   try {
     const iftb = new IsraelFinanceTelegramBot(
       keyVaultClient,
       telegramToken,
       telegramChatId,
       envParams,
+      yargs.argv.docker === true,
     );
     iftb.run();
   } catch (e) {

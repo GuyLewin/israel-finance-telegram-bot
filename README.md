@@ -119,7 +119,7 @@ Least recommended method, but it's still here if you prefer not installing Docke
 
 #### Prequisites
 * Node.js (>= 8) installed on your machine. Go [here!](https://nodejs.org/en/download/) to download and install the latest Node.js for your operating system.
-* It is also recommended you install [pm2](https://www.npmjs.com/package/pm2) globally, the process manager used by this bot. `npm install pm2 -g`.
+* Install [pm2](https://www.npmjs.com/package/pm2) globally, the process manager used by this bot. `npm install pm2 -g`.
 
 #### Installation
 Once Node.js and pm2 are installed, run the following command to fetch the code:
@@ -135,22 +135,14 @@ npm install
 ```
 
 #### Running the Code
-If pm2 is installed gloablly, you can use it's global command line tool:
+Run
 ```bash
 pm2 start israel-finance-telegram-bot.js
-```
-If not, use the pm2 binary installed within the package dependencies (less recommended):
-```bash
-./node_modules/.bin/pm2 start israel-finance-telegram-bot.js
 ```
 
 The status (and log) of the bot can be seen using
 ```bash
 pm2 log israel-finance-telegram-bot
-```
-or if pm2 isn't installed globally:
-```bash
-./node_modules/.bin/pm2 log israel-finance-telegram-bot
 ```
 The bot should initially send notifications for all transactions since the beginning of last month (or the start date configured in `config.js`).
 Afterwards, it will only send notifications for new transactions.
