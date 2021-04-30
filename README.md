@@ -14,11 +14,11 @@ The array passed as `ServiceJson` should be formatted as:
 [{"companyId":"hapoalim","credentialsIdentifier":"hapoalim1","niceName":"בנק הפועלים"},{"companyId":"amex","credentialsIdentifier":"amex1","niceName":"אמריקן אקספרס"},{"companyId":"isracard","credentialsIdentifier":"isracard1","niceName":"ישראכרט"}]
 ```
 Each object in the array has:
-* `companyId` - the scraper identifier. Take a look at the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.js) to see the options (the keys of the `SCRAPERS` object).
+* `companyId` - the scraper identifier. Take a look at the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.ts) to see the options (the keys of the `SCRAPERS` object).
 * `credentialsIdentifier` - the name of the secret within KeyVault. I chose the companyId + a rolling index, but just make sure the value here matches the name you choose for KeyVault.
 * `niceName` - the name you'd like to see in notifications.
 
-In addition, each service should have a corresponding secret within Azure KeyVault. It's name should be the value you put in `credentialsIdentifier`. The secret value should be a JSON containing the login fields specified in the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.js). For example, a secret value for `Bank Hapoalim` would look like:
+In addition, each service should have a corresponding secret within Azure KeyVault. It's name should be the value you put in `credentialsIdentifier`. The secret value should be a JSON containing the login fields specified in the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.ts). For example, a secret value for `Bank Hapoalim` would look like:
 ```json
 {"userCode":"te1337","password":"testtest"}
 ```
@@ -29,8 +29,8 @@ The array passed as `ServiceJson` should be formatted as:
 [{"companyId":"hapoalim","credentials":{"userCode":"te1337","password":"testtest"},"niceName":"בנק הפועלים"},{"companyId":"amex","credentials":{"id":"000000000","card6Digits":123456,"password":"testtest"},"niceName":"אמריקן אקספרס"},{"companyId":"isracard","credentials":{"id":"000000000","card6Digits":123456,"password":"testtest"},"niceName":"ישראכרט"}]
 ```
 Each object in the array has:
-* `companyId` - the scraper identifier. Take a look at the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.js) to see the options (the keys of the `SCRAPERS` object).
-* `credentials` - JSON containing the login fields specified in the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.js).
+* `companyId` - the scraper identifier. Take a look at the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.ts) to see the options (the keys of the `SCRAPERS` object).
+* `credentials` - JSON containing the login fields specified in the [israeli-bank-scrapers definitions code](https://github.com/eshaham/israeli-bank-scrapers/blob/master/src/definitions.ts).
 * `niceName` - the name you'd like to see in notifications.
 
 ### Telegram API Key
