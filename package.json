@@ -38,7 +38,7 @@
     "@azure/keyvault-secrets": "^4.0.2",
     "@babel/register": "^7.4.0",
     "inquirer": "^6.2.1",
-    "israeli-bank-scrapers": "^1.9.0",
+    "israeli-bank-scrapers": "^1.10.0",
     "moment": "^2.19.3",
     "node-json-db": "^1.0.3",
     "node-telegram-bot-api": "^0.30.0",
