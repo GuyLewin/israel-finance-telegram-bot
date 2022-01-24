@@ -1,6 +1,6 @@
-FROM node:14-alpine
+FROM node:17-alpine
 
-# Installs latest Chromium (77) package.
+# Installs latest Chromium package.
 RUN apk add --no-cache \
     chromium \
     nss \
@@ -25,7 +25,7 @@ WORKDIR /app
 # Install app dependencies
 # A wildcard is used to ensure both package.json AND package-lock.json are copied
 # where available (npm@5+)
-COPY package*.json ./
+COPY --chown=docker package*.json ./
 
 RUN npm install
 
